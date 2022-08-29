@@ -1,12 +1,17 @@
 package com.codinginflow.mvvmtodo.ui.tasks
 
 import android.os.Bundle
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.codinginflow.mvvmtodo.R
 import com.codinginflow.mvvmtodo.databinding.FragmentTasksBinding
+import com.codinginflow.mvvmtodo.util.onQueryTextChanged
 import dagger.hilt.android.AndroidEntryPoint
 
 /**
@@ -35,6 +40,54 @@ class TasksFragment: Fragment(R.layout.fragment_tasks) {
 
         viewModel.tasks.observe(viewLifecycleOwner) {
             tasksAdapter.submitList(it)
+        }
+
+        // Включает менюху
+        setHasOptionsMenu(true)
+    }
+
+    /**
+     * Данный метод позволяет нам имплементировать нашу реализацию option menu в наш фрагмент.
+     * */
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        inflater.inflate(R.menu.menu_fragment_tasks, menu)
+
+        val searchItem = menu.findItem(R.id.action_search)
+        val searchView = searchItem.actionView as SearchView
+
+        /**
+         * Описание логики поведения при написании текста в SearchView.
+         * См. файл com.codinginflow.mvvmtodo.util.ViewExt.
+         * */
+        searchView.onQueryTextChanged {
+            // update search query
+        }
+    }
+
+    /**
+     * Определение поведения приложения при выборе того или иного пункта меню.
+     * */
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        return when(item.itemId) {
+            // Если пользователь ткнул на "Сортировку по названию"
+            R.id.action_sort_by_name -> {
+
+                true
+            }
+
+            // Если пользователь ткнул на "Сортировку по дате"
+            R.id.action_sort_by_date_created -> {
+
+                true
+            }
+
+            // Если пользователь ткнул на "Удалить все завершённые задания"
+            R.id.action_delete_all_completed_tasks -> {
+
+                true
+            }
+
+            else -> super.onOptionsItemSelected(item)
         }
     }
 }
