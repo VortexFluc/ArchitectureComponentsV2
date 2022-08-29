@@ -27,7 +27,7 @@
     <item
         android:id="@+id/action_hide_completed_tasks"
         android:checkable="true"
-        android:title="Hide completed"
+        android:title="Скрыть завершённые задачи"
         app:showAsAction="never"/>
 
     <item
