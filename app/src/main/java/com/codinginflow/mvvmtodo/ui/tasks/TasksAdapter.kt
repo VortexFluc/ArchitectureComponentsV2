@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.codinginflow.mvvmtodo.data.Task
 import com.codinginflow.mvvmtodo.databinding.ItemTaskBinding
 
-class TasksAdapter: ListAdapter<Task, TasksAdapter.TasksViewHolder>(DiffCallback()) {
+class TasksAdapter(private val listener: OnItemClickListener): ListAdapter<Task, TasksAdapter.TasksViewHolder>(DiffCallback()) {
 
     /**
      * Вызывается при создании нашего TasksViewHolder'а.
@@ -42,7 +42,36 @@ class TasksAdapter: ListAdapter<Task, TasksAdapter.TasksViewHolder>(DiffCallback
      * В конструктор ViewHolder'а мы передаём binding.root, что позволит нам "достучаться" до "вьюх"
      * внутри item_task.xml через обращения типа binding.<idЭлемента>.
      * */
-    class TasksViewHolder(private val binding: ItemTaskBinding): RecyclerView.ViewHolder(binding.root) {
+    inner class TasksViewHolder(private val binding: ItemTaskBinding): RecyclerView.ViewHolder(binding.root) {
+
+        init {
+            binding.apply {
+                root.setOnClickListener {
+                    /**
+                     * Позиция - соответствующий элемент списка RecyclerView.
+                     *
+                     * Пример:
+                     * <RecyclerView>
+                     * <Task>Task1</Task> position = 0
+                     * <Task>Task2</Task> position = 1
+                     * <Task>Task3</Task> position = 2
+                     * </RecyclerView>
+                     * */
+                    val position = adapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        val task = getItem(position)
+                        listener.onItemClick(task)
+                    }
+                }
+                checkboxCompleted.setOnClickListener {
+                    val position = adapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        val task = getItem(position)
+                        listener.onCheckBoxCLick(task, checkboxCompleted.isChecked)
+                    }
+                }
+            }
+        }
 
         fun bind(task: Task) {
             binding.apply {
@@ -53,6 +82,16 @@ class TasksAdapter: ListAdapter<Task, TasksAdapter.TasksViewHolder>(DiffCallback
             }
         }
 
+    }
+
+    /**
+     * Объявление интерфейса в адаптере позволяет "переиспользовать" адаптер для других классов.
+     * Реализация интерфейса будет происходить в соответствующих классах, которые адаптеру необходимо
+     * обрабатывать.
+     * */
+    interface OnItemClickListener {
+        fun onItemClick(task: Task)
+        fun onCheckBoxCLick(task: Task, isChecked: Boolean)
     }
 
     /**
