@@ -9,13 +9,19 @@ import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.codinginflow.mvvmtodo.R
 import com.codinginflow.mvvmtodo.data.SortOrder
 import com.codinginflow.mvvmtodo.data.Task
 import com.codinginflow.mvvmtodo.databinding.FragmentTasksBinding
+import com.codinginflow.mvvmtodo.util.exhaustive
 import com.codinginflow.mvvmtodo.util.onQueryTextChanged
+import com.google.android.material.snackbar.Snackbar
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.android.synthetic.main.fragment_tasks.*
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -42,11 +48,66 @@ class TasksFragment: Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClick
                 layoutManager = LinearLayoutManager(requireContext()) // Устанавливает расположение вьюх
                 setHasFixedSize(true) // Оптимизация. Так как мы знаем, что наш Task не изменяет свои размеры
             }
+
+            /**
+             * Добавления логики "свайпа" для удаления записи
+             * */
+            ItemTouchHelper(object : ItemTouchHelper.SimpleCallback(0,
+            ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+
+                /**
+                 * Данный метод отвечает за перемещение вверх-вниз.
+                 * */
+                override fun onMove(
+                    recyclerView: RecyclerView,
+                    viewHolder: RecyclerView.ViewHolder,
+                    target: RecyclerView.ViewHolder
+                ): Boolean {
+                    return false
+                }
+
+
+                /**
+                 * Данный метод отвечает за свайп влево-вправо.
+                 * */
+                override fun onSwiped(viewHolder: RecyclerView.ViewHolder, // Содержит информацию о свайпающем объекте
+                                      direction: Int // Направление свайпа
+                ) {
+                    val task = tasksAdapter.currentList[viewHolder.adapterPosition]
+                    viewModel.onTaskSwiped(task) // Данную функцию определяем мы в TaskViewModel
+                }
+            }).attachToRecyclerView(recyclerViewTasks)
+
+            fabAddTask.setOnClickListener {
+                viewModel.onAddNewTaskClick()
+            }
         }
 
         viewModel.tasks.observe(viewLifecycleOwner) {
             tasksAdapter.submitList(it)
         }
+
+        viewLifecycleOwner.lifecycleScope.launchWhenStarted {
+            viewModel.tasksEvent.collect { event ->
+                when (event) {
+                    is TasksViewModel.TasksEvent.ShowUndoDeleteTaskMessage -> {
+                        Snackbar.make(requireView(), "Данные удалены", Snackbar.LENGTH_LONG)
+                            .setAction("Отменить") {
+                                viewModel.onUndoDeleteClick(event.task)
+                            }.show()
+                    }
+                    TasksViewModel.TasksEvent.NavigateToAddTaskScreen -> {
+                        val action = TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(null, "Новая задача")
+                        findNavController().navigate(action)
+                    }
+                    is TasksViewModel.TasksEvent.NavigateToEditTaskScreen -> {
+                        val action = TasksFragmentDirections.actionTasksFragmentToAddEditTaskFragment(event.task, "Изменение задачи")
+                        findNavController().navigate(action)
+                    }
+                }.exhaustive
+            }
+        }
+
 
         // Включает менюху
         setHasOptionsMenu(true)
