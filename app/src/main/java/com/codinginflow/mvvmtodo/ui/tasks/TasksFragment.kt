@@ -88,6 +88,9 @@ class TasksFragment: Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClick
             tasksAdapter.submitList(it)
         }
 
+        /**
+         * Данный обработчик отвечает за обработку событий и навигацию в соответствующие фрагменты
+         * */
         viewLifecycleOwner.lifecycleScope.launchWhenStarted {
             viewModel.tasksEvent.collect { event ->
                 when (event) {
@@ -107,6 +110,10 @@ class TasksFragment: Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClick
                     }
                     is TasksViewModel.TasksEvent.ShowTaskSavedConfirmationMessage -> {
                         Snackbar.make(requireView(), event.msg, Snackbar.LENGTH_SHORT).show()
+                    }
+                    TasksViewModel.TasksEvent.NavigateToDeleteAllCompletedScreen -> {
+                        val action = TasksFragmentDirections.actionGlobalDeleteAllCompletedDialogFragment()
+                        findNavController().navigate(action)
                     }
                 }.exhaustive
             }
@@ -172,6 +179,7 @@ class TasksFragment: Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClick
 
             // Если пользователь ткнул на "Удалить все завершённые задания"
             R.id.action_delete_all_completed_tasks -> {
+                viewModel.onDeleteAllCompletedClick()
                 true
             }
 

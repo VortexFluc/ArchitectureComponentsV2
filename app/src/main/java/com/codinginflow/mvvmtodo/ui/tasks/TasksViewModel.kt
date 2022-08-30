@@ -114,6 +114,10 @@ class TasksViewModel @ViewModelInject constructor(
         tasksEventChannel.send(TasksEvent.ShowTaskSavedConfirmationMessage(text))
     }
 
+    fun onDeleteAllCompletedClick() = viewModelScope.launch {
+        tasksEventChannel.send(TasksEvent.NavigateToDeleteAllCompletedScreen)
+    }
+
 
     /**
      * Sealed-class похож на enum, но объекты sealed класса могут содержать данные (в отличие от
@@ -124,5 +128,6 @@ class TasksViewModel @ViewModelInject constructor(
         data class NavigateToEditTaskScreen(val task: Task): TasksEvent()
         data class ShowUndoDeleteTaskMessage(val task: Task): TasksEvent()
         data class ShowTaskSavedConfirmationMessage(val msg: String): TasksEvent()
+        object NavigateToDeleteAllCompletedScreen: TasksEvent()
     }
 }
