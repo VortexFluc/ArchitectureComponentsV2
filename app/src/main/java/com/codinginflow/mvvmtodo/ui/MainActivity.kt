@@ -1,5 +1,6 @@
 package com.codinginflow.mvvmtodo.ui
 
+import android.app.Activity
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.navigation.NavController
@@ -34,3 +35,12 @@ class MainActivity : AppCompatActivity() {
         return navController.navigateUp() || super.onSupportNavigateUp()
     }
 }
+
+/**
+ * Константы для результатов добавления тасок. (См. sealed-класс в AddEditTaskViewModel)
+ */
+// Используем Activity.RESULT_FIRST_USER чтобы избежать коллизий с RESULT_OK
+const val ADD_TASK_RESULT_OK = Activity.RESULT_FIRST_USER
+
+// Используем Activity.RESULT_FIRST_USER + 1 чтобы избежать коллизий с RESULT_OK
+const val EDIT_TASK_RESULT_OK = Activity.RESULT_FIRST_USER + 1

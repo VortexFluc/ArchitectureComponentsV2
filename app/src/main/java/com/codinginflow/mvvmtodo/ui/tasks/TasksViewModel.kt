@@ -7,8 +7,9 @@ import com.codinginflow.mvvmtodo.data.PreferencesManager
 import com.codinginflow.mvvmtodo.data.SortOrder
 import com.codinginflow.mvvmtodo.data.Task
 import com.codinginflow.mvvmtodo.data.TaskDao
+import com.codinginflow.mvvmtodo.ui.ADD_TASK_RESULT_OK
+import com.codinginflow.mvvmtodo.ui.EDIT_TASK_RESULT_OK
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -102,6 +103,18 @@ class TasksViewModel @ViewModelInject constructor(
         tasksEventChannel.send(TasksEvent.NavigateToAddTaskScreen)
     }
 
+    fun onAddEditResult(result: Int) {
+        when (result) {
+            ADD_TASK_RESULT_OK -> showTaskSavedConfirmationMessage("Задача добавлена")
+            EDIT_TASK_RESULT_OK -> showTaskSavedConfirmationMessage("Задача обновлена")
+        }
+    }
+
+    private fun showTaskSavedConfirmationMessage(text: String) = viewModelScope.launch {
+        tasksEventChannel.send(TasksEvent.ShowTaskSavedConfirmationMessage(text))
+    }
+
+
     /**
      * Sealed-class похож на enum, но объекты sealed класса могут содержать данные (в отличие от
      * enum'овских объектов)
@@ -110,5 +123,6 @@ class TasksViewModel @ViewModelInject constructor(
         object NavigateToAddTaskScreen: TasksEvent()
         data class NavigateToEditTaskScreen(val task: Task): TasksEvent()
         data class ShowUndoDeleteTaskMessage(val task: Task): TasksEvent()
+        data class ShowTaskSavedConfirmationMessage(val msg: String): TasksEvent()
     }
 }
