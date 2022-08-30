@@ -35,6 +35,7 @@ import kotlinx.coroutines.launch
 class TasksFragment: Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClickListener {
 
     private val viewModel: TasksViewModel by viewModels()
+    private lateinit var searchView: SearchView
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -135,7 +136,23 @@ class TasksFragment: Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClick
         inflater.inflate(R.menu.menu_fragment_tasks, menu)
 
         val searchItem = menu.findItem(R.id.action_search)
-        val searchView = searchItem.actionView as SearchView
+
+        /**
+         * BUGFIX!
+         * При поиске таски, поле ввода закрывается при повороте экрана. Чтобы этого избежать мы переносим
+         * объявление searchView в поля класса, а так же инициализируем переменную pendingQuery, хранящую
+         * результат наших писанин.
+         *
+         * В дополнение мы создаём метод onDestroyView!!
+         * */
+        searchView = searchItem.actionView as SearchView
+
+        val pendingQuery = viewModel.searchQuery.value
+        if (pendingQuery != null && pendingQuery.isNotEmpty()) {
+            searchItem.expandActionView()
+            searchView.setQuery(pendingQuery, false)
+        }
+
 
         /**
          * Описание логики поведения при написании текста в SearchView.
@@ -193,5 +210,10 @@ class TasksFragment: Fragment(R.layout.fragment_tasks), TasksAdapter.OnItemClick
 
     override fun onCheckBoxCLick(task: Task, isChecked: Boolean) {
         viewModel.onTaskCheckedChanged(task, isChecked)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        searchView.setOnQueryTextListener(null)
     }
 }
